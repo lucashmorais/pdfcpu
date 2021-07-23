@@ -31,6 +31,16 @@ func EncryptFile(inFile, outFile string, conf *pdfcpu.Configuration) error {
 	return OptimizeFile(inFile, outFile, conf)
 }
 
+// Encrypt encrypts the contents of rs and writes the result to w.
+// A configuration containing the current passwords is required.
+func Encrypt(rs io.ReadSeeker, w io.Writer, conf *pdfcpu.Configuration) error {
+	if conf == nil {
+		return errors.New("pdfcpu: missing configuration for encryption")
+	}
+	conf.Cmd = pdfcpu.ENCRYPT
+	return Optimize(rs, w, conf)
+}
+
 // DecryptFile decrypts inFile and writes the result to outFile.
 // A configuration containing the current passwords is required.
 func DecryptFile(inFile, outFile string, conf *pdfcpu.Configuration) error {
@@ -39,6 +49,16 @@ func DecryptFile(inFile, outFile string, conf *pdfcpu.Configuration) error {
 	}
 	conf.Cmd = pdfcpu.DECRYPT
 	return OptimizeFile(inFile, outFile, conf)
+}
+
+// Decrypt decrypts the contents of rs and writes the result to w.
+// A configuration containing the current passwords is required.
+func Decrypt(rs io.ReadSeeker, w io.Writer, conf *pdfcpu.Configuration) error {
+	if conf == nil {
+		return errors.New("pdfcpu: missing configuration for decryption")
+	}
+	conf.Cmd = pdfcpu.DECRYPT
+	return Optimize(rs, w, conf)
 }
 
 // ChangeUserPasswordFile reads inFile, changes the user password and writes the result to outFile.
