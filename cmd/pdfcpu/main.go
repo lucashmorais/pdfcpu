@@ -18,8 +18,14 @@ limitations under the License.
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
+
+	//"github.com/gopherjs/gopherjs/js"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 )
 
 var (
@@ -42,7 +48,46 @@ func init() {
 	initCommandMap()
 }
 
+func DecryptJS(inputSlice []byte) []byte {
+	input := bytes.NewReader(inputSlice)
+	outputSlice := make([]byte, 0)
+	output := bytes.NewBuffer(outputSlice)
+	api.DisableConfigDir()
+	api.Optimize(input, output, nil)
+	return output.Bytes()
+}
+
+func OptimizeGJS(inputSlice []byte) []byte {
+	input := bytes.NewReader(inputSlice)
+	outputSlice := make([]byte, 0)
+	output := bytes.NewBuffer(outputSlice)
+	api.DisableConfigDir()
+	api.Optimize(input, output, nil)
+	return output.Bytes()
+}
+
+func MergeGJS(inputSlices [][]byte) []byte {
+	var inputs []io.ReadSeeker
+	for _, inputSlice := range inputSlices {
+		inputReader := bytes.NewReader(inputSlice)
+		inputs = append(inputs, inputReader)
+	}
+	api.DisableConfigDir()
+	config := pdfcpu.NewDefaultConfiguration()
+	config.ValidationMode = pdfcpu.ValidationNone
+
+	outputSlice := make([]byte, 0)
+	output := bytes.NewBuffer(outputSlice)
+	api.Merge(inputs, output, config)
+	return output.Bytes()
+}
+
 func main() {
+	js.Global.Set("Foo", Foo)
+	js.Global.Set("OptimizeJS", OptimizeGJS)
+	js.Global.Set("MergeJS", MergeGJS)
+	js.Global.Set("DecryptJS", MergeGJS)
+
 	if len(os.Args) == 1 {
 		fmt.Fprintln(os.Stderr, usage)
 		os.Exit(0)
@@ -64,3 +109,5 @@ func main() {
 
 	os.Exit(0)
 }
+
+func Foo() string { return "hello from Go" }
