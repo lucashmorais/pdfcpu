@@ -23,7 +23,7 @@ import (
 	"io"
 	"os"
 
-	//"github.com/gopherjs/gopherjs/js"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/pdfcpu/pdfcpu/pkg/api"
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu"
 )
@@ -53,7 +53,14 @@ func DecryptJS(inputSlice []byte) []byte {
 	outputSlice := make([]byte, 0)
 	output := bytes.NewBuffer(outputSlice)
 	api.DisableConfigDir()
-	api.Optimize(input, output, nil)
+	config := pdfcpu.NewDefaultConfiguration()
+
+	// config := pdfcpu.NewAESConfiguration("", "", 0)
+	// config := pdfcpu.NewRC4Configuration("", "", 0)
+	// config.ValidationMode = pdfcpu.ValidationNone
+
+	config.Cmd = pdfcpu.DECRYPT
+	api.Decrypt(input, output, config)
 	return output.Bytes()
 }
 
@@ -75,7 +82,6 @@ func MergeGJS(inputSlices [][]byte) []byte {
 	api.DisableConfigDir()
 	config := pdfcpu.NewDefaultConfiguration()
 	config.ValidationMode = pdfcpu.ValidationNone
-
 	outputSlice := make([]byte, 0)
 	output := bytes.NewBuffer(outputSlice)
 	api.Merge(inputs, output, config)
@@ -86,7 +92,7 @@ func main() {
 	js.Global.Set("Foo", Foo)
 	js.Global.Set("OptimizeJS", OptimizeGJS)
 	js.Global.Set("MergeJS", MergeGJS)
-	js.Global.Set("DecryptJS", MergeGJS)
+	js.Global.Set("DecryptJS", DecryptJS)
 
 	if len(os.Args) == 1 {
 		fmt.Fprintln(os.Stderr, usage)
