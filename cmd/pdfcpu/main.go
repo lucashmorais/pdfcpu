@@ -48,19 +48,26 @@ func init() {
 	initCommandMap()
 }
 
-func DecryptJS(inputSlice []byte) []byte {
+func DecryptJS(inputSlice []byte, userPW string, ownerPW string, keyLength int) []byte {
 	input := bytes.NewReader(inputSlice)
 	outputSlice := make([]byte, 0)
 	output := bytes.NewBuffer(outputSlice)
 	api.DisableConfigDir()
-	config := pdfcpu.NewDefaultConfiguration()
 
-	// config := pdfcpu.NewAESConfiguration("", "", 0)
+	// config := pdfcpu.NewDefaultConfiguration()
+	config := pdfcpu.NewAESConfiguration(userPW, ownerPW, keyLength)
+	// config := pdfcpu.NewRC4Configuration(userPW, ownerPW, keyLength)
 	// config := pdfcpu.NewRC4Configuration("", "", 0)
 	// config.ValidationMode = pdfcpu.ValidationNone
 
 	config.Cmd = pdfcpu.DECRYPT
-	api.Decrypt(input, output, config)
+	err := api.Decrypt(input, output, config)
+	if err != nil {
+		println(err)
+
+		err_msg := err.Error()
+		println(err_msg)
+	}
 	return output.Bytes()
 }
 
